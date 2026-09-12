@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Pança's Burger — peça direto pelo WhatsApp.">
   <title>Pança's Burger — Cardápio</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +16,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
   <style>
-    :root { --ink:#241f1c; --paper:#eeeae3; --cream:#f8f5ef; --red:#aa3b34; --yellow:#e7bd62; --line:rgba(36,31,28,.15); }
+    :root { --ink:#241a16; --paper:#eee2d2; --cream:#fcf3e5; --red:#b64230; --yellow:#e8b84d; --line:rgba(36,26,22,.15); }
     * { box-sizing:border-box; }
     html { scroll-behavior:smooth; }
     body { margin:0; background:var(--paper); color:var(--ink); font-family:"Space Grotesk", sans-serif; }
@@ -62,11 +64,11 @@
         </div>
         <div class="mt-12 flex flex-wrap items-center gap-3">
           <a href="#cardapio" class="inline-flex items-center gap-3 bg-[var(--red)] px-5 py-3.5 text-sm font-bold text-white transition hover:translate-x-1">Ver cardápio <i data-lucide="arrow-down-right" class="h-4 w-4"></i></a>
-          <span class="mono text-[10px] uppercase tracking-[.18em] text-black/50">Pedeu, chegou no WhatsApp</span>
+          <span class="mono text-[10px] uppercase tracking-[.18em] text-black/50">Pediu, chegou no WhatsApp</span>
         </div>
       </div>
       <div class="relative flex min-h-[390px] items-center justify-center border-2 border-[var(--ink)] bg-[var(--red)] p-5 lg:min-h-[560px]">
-        <span class="absolute left-5 top-5 mono text-[10px] font-bold uppercase tracking-[.2em] text-white/70">PB / 001</span>
+        <span class="absolute left-5 top-5 mono text-[10px] font-bold uppercase tracking-[.2em] text-white/70">Número 1 de Jequié</span>
         <span class="absolute bottom-5 right-5 mono text-[10px] font-bold uppercase tracking-[.2em] text-white/70">desde a chapa</span>
         <div class="rotate-[-4deg] bg-[var(--yellow)] p-3 shadow-[12px_12px_0_var(--ink)] sm:p-5">
           <img src="logo.png" alt="Logo Pança's Burger" class="w-[min(72vw,390px)] bg-[var(--cream)] object-contain">
@@ -192,7 +194,7 @@
         document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEdit(b.dataset.edit));
       }
       function openEdit(id){const p=state.products.find(i=>i.id===id);if(!p)return;showModal(`<div class="modal-bg absolute inset-0" data-close></div><div class="modal-panel relative w-full max-w-lg border-2 border-[var(--ink)] bg-[var(--cream)] p-6 shadow-[8px_8px_0_var(--ink)]"><button data-close class="absolute right-3 top-3"><i data-lucide="x"></i></button><h2 class="text-3xl font-bold">Editar produto</h2><form id="editForm" class="mt-5 space-y-3"><input required name="name" value="${esc(p.name)}" class="w-full border-2 border-[var(--ink)] bg-white p-3"><input required name="price" type="number" step=".01" value="${p.price}" class="w-full border-2 border-[var(--ink)] bg-white p-3"><textarea required name="description" rows="3" class="w-full border-2 border-[var(--ink)] bg-white p-3">${esc(p.description)}</textarea><label class="upload-label flex items-center gap-2 p-3 text-sm"><i data-lucide="upload" class="h-4 w-4"></i><span>Trocar foto PNG/JPG/WebP</span><input name="image" type="file" accept="image/png,image/jpeg,image/webp" class="hidden"></label><button class="w-full border-2 border-[var(--ink)] bg-[var(--yellow)] py-3 font-bold">Salvar</button></form></div>`);bindClose();get('editForm').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target),file=e.target.querySelector('[name="image"]').files[0],image=await uploadImage(file);await db.ref(`pancasBurger/products/${id}`).update({name:fd.get('name'),price:Number(fd.get('price')),description:fd.get('description'),...(image?{image}:{})});openAdmin();};}
-      productsRef.on('value',snap=>{const data=snap.val();if(!productsInitialized){productsInitialized=true;if(!data){productsRef.set({teste:defaultProduct});return;}}state.products=data?Object.values(data):[];render();});
+      productsRef.on('value',async snap=>{const data=snap.val();if(!productsInitialized){productsInitialized=true;if(!data){const initialized=(await db.ref('pancasBurger/catalogInitialized').once('value')).val();if(!initialized){await productsRef.set({teste:defaultProduct});await db.ref('pancasBurger/catalogInitialized').set(true);return;}}}state.products=data?Object.values(data):[];render();});
       settingsRef.on('value',snap=>{state.settings={...state.settings,...(snap.val()||{})};if(!snap.exists())settingsRef.set(state.settings);render();});
       get('searchInput').oninput=e=>{search=e.target.value;renderProducts();};get('desktopCart').onclick=openCart;get('mobileCart').onclick=openCart;get('adminButton').onclick=openLogin;render();
     })();
