@@ -126,11 +126,9 @@
       const fallbackImage = 'logo.png';
       const categories = ['Todos', 'Hambúrgueres', 'Combos', 'Porções', 'Bebidas'];
       const productCategories = categories.slice(1);
-      const defaultProduct = { id:'teste', name:'Teste', category:'Hambúrgueres', price:10, description:'Produto de teste. Edite ou exclua no painel.', image:fallbackImage, available:true };
       const state = { products:[], settings:{ isOpen:true }, cart:[] };
       let activeCategory = 'Todos';
       let search = '';
-      let productsInitialized = false;
       const money = value => Number(value || 0).toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
       const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
       const get = id => document.getElementById(id);
@@ -191,7 +189,7 @@
         document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openEdit(b.dataset.edit));
       }
       function openEdit(id){const p=state.products.find(i=>i.id===id);if(!p)return;showModal(`<div class="modal-bg absolute inset-0" data-close></div><div class="modal-panel relative w-full max-w-lg border-2 border-[var(--ink)] bg-[var(--cream)] p-6 shadow-[8px_8px_0_var(--ink)]"><button data-close class="absolute right-3 top-3"><i data-lucide="x"></i></button><h2 class="text-3xl font-bold">Editar produto</h2><form id="editForm" class="mt-5 space-y-3"><input required name="name" value="${esc(p.name)}" class="w-full border-2 border-[var(--ink)] bg-white p-3"><input required name="price" type="number" step=".01" value="${p.price}" class="w-full border-2 border-[var(--ink)] bg-white p-3"><textarea required name="description" rows="3" class="w-full border-2 border-[var(--ink)] bg-white p-3">${esc(p.description)}</textarea><label class="upload-label flex items-center gap-2 p-3 text-sm"><i data-lucide="upload" class="h-4 w-4"></i><span>Trocar foto PNG/JPG/WebP</span><input name="image" type="file" accept="image/png,image/jpeg,image/webp" class="hidden"></label><button class="w-full border-2 border-[var(--ink)] bg-[var(--yellow)] py-3 font-bold">Salvar</button></form></div>`);bindClose();get('editForm').onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target),file=e.target.querySelector('[name="image"]').files[0],image=await uploadImage(file);await db.ref(`pancasBurger/products/${id}`).update({name:fd.get('name'),price:Number(fd.get('price')),description:fd.get('description'),...(image?{image}:{})});openAdmin();};}
-      productsRef.on('value',async snap=>{const data=snap.val();if(!productsInitialized){productsInitialized=true;if(!data){const initialized=(await db.ref('pancasBurger/catalogInitialized').once('value')).val();if(!initialized){await productsRef.set({teste:defaultProduct});await db.ref('pancasBurger/catalogInitialized').set(true);return;}}}state.products=data?Object.values(data):[];render();});
+      productsRef.on('value',snap=>{const data=snap.val();state.products=data?Object.values(data):[];render();});
       settingsRef.on('value',snap=>{state.settings={...state.settings,...(snap.val()||{})};if(!snap.exists())settingsRef.set(state.settings);render();});
       get('searchInput').oninput=e=>{search=e.target.value;renderProducts();};get('desktopCart').onclick=openCart;get('mobileCart').onclick=openCart;get('adminButton').onclick=openLogin;render();
     })();
